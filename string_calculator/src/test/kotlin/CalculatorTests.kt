@@ -74,4 +74,28 @@ class CalculatorTests
             assertEquals("negatives not allowed: -2", message)
         }
     }
+
+    @Test
+    fun `should ignore numbers bigger than 1000`()
+    {
+        assertEquals(2, Calculator.add("2,1001"))
+    }
+
+    @Test
+    fun `delimiters should be of any length`()
+    {
+        assertEquals(6, Calculator.add("//[***]\n1***2***3"))
+    }
+
+    @Test
+    fun `allow multiple delimiters`()
+    {
+        assertEquals(6, Calculator.add("//[*][%]\n1*2%3"))
+    }
+
+    @Test
+    fun `should handle multiple delimiters with length longer than one char`()
+    {
+        assertEquals(10, Calculator.add("//[****][%%%%][??]\n1****2%%%%3??4"))
+    }
 }

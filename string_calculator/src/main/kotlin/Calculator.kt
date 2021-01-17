@@ -13,6 +13,7 @@ object Calculator
         {
             return input
                 .extractNumbers()
+                .ignoreNumbersBiggerThan(1000)
                 .filterNegativeNumbers()
                 .sum()
         }
@@ -21,15 +22,30 @@ object Calculator
 
     private fun String.secondLine() = this.substring(this.indexOf("\n") + 1)
 
-    private fun String.getDelimiter(): String
+    private fun String.getDelimiters(): List<String>
     {
-        val pattern: Pattern = Pattern.compile("""^//(.)\n""", Pattern.MULTILINE)
-        val matcher: Matcher = pattern.matcher(this)
+        var pattern: Pattern = Pattern.compile("""^//(.)\n""", Pattern.MULTILINE)
+        var matcher: Matcher = pattern.matcher(this)
+        val delimiters = mutableListOf<String>()
         if (matcher.find())
         {
-            return matcher.group(1)
+            if (matcher.group(1).length == 1)
+            {
+                delimiters.add(matcher.group(1))
+                return delimiters
+            }
         }
-        return ""
+        else
+        {
+            pattern = Pattern.compile("""\[(.*?)\]""", Pattern.MULTILINE)
+            matcher = pattern.matcher(this)
+            while (matcher.find())
+            {
+                delimiters.add(matcher.group(1))
+            }
+            return delimiters
+        }
+        return emptyList()
     }
 
     private fun String.usesCustomDelimiterSyntax() = this.startsWith("//")
@@ -39,7 +55,7 @@ object Calculator
     private fun String.extractNumbers(): List<Int>
     {
         val defaultDelimiters = listOf(",", "\n")
-        val currentDelimiter = listOf(this.getDelimiter()).filter { it.isNotEmpty() }
+        val currentDelimiter = listOf(this.getDelimiters()).flatten().filter { it.isNotEmpty() }
 
         if (currentDelimiter.isEmpty())
         {
@@ -51,12 +67,12 @@ object Calculator
         }
     }
 
-    private fun List<Int>.filterNegativeNumbers(): List<Int>
-    {
+    private fun List<Int>.filterNegativeNumbers() = apply {
         val negatives = this.filter { it < 0 }
         if (negatives.isNotEmpty())
             throw RuntimeException("negatives not allowed: ${negatives.joinToString(",")}")
-        return this
     }
+
+    private fun List<Int>.ignoreNumbersBiggerThan(number: Int) = this.filter { it <= number }
 }
 
